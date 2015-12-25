@@ -159,7 +159,7 @@ extern void	osdepEntropyClose(void);
 #endif
 
 #ifndef min
- #define min(a,b)    ((a) < (b)) ? (a) : (b))
+ #define min(a,b) ((a) < (b) ? (a) : (b))
 #endif /* min */
 
 /******************************************************************************/
