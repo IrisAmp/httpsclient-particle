@@ -7,6 +7,7 @@ extern "C" {
 #endif
 
 #include "matrixsslApi.h"
+#include <string>
 
 #define HTTPS_COMPLETE          1
 #define HTTPS_ERROR            -1
@@ -16,15 +17,9 @@ extern "C" {
 #define USE_RSA_CIPHER_SUITE
 #define ID_RSA
 
-extern TCPClient  client;
-extern bool       g_https_complete;
-extern uint32_t   g_bytes_received;
-extern const bool g_https_trace;
-
-int  httpsclientSetup(const char * host, const char * path);
-int  httpsClientConnection(unsigned char * requestContent, uint32 msg_len, const char * msg);
-void httpsclientCleanUp();
-void httpsclientSetPath(const char * path);
+int32_t httpsclientSetup(const char * host, const char * path);
+int32_t sendHttpsRequest(std::string request);
+void    httpsclientSetPath(const char * path);
 
 #ifdef __cplusplus
 }
