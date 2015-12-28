@@ -1,8 +1,8 @@
 /*
-  This file follows client.c from matrixSSL-3.7.2b closely to make a post/
-  get using https. It is also inspired by the httpclient library available
-  on github for the particle photon
-  (https://github.com/nmattisson/HttpClient)
+	This file follows client.c from matrixSSL-3.7.2b closely to make a post/
+	get using https. It is also inspired by the httpclient library available
+	on github for the particle photon
+	(https://github.com/nmattisson/HttpClient)
  */
  // WARNING WARNING WARNING:
  // This is for test purposes only, the RSA keys included in header files are SAMPLE
@@ -164,6 +164,8 @@ int32_t sendHttpsRequest(std::string request)
 	Serial.println("HTTPS > sendHttpsRequest");
 	printFreeMem();
 
+	int32_t rc;
+
 	Serial.println("HTTPS > sendHttpsRequest > Connecting TCPClient");
     if (!tcpClient.connect(g_host, 443))
     {
@@ -175,25 +177,20 @@ int32_t sendHttpsRequest(std::string request)
         return -1;
     }
 
-	int32_t rc;
-
-	// options.versionFlag = sessionFlag;
-	// options.userPtr     = keys;
-
 	/*	The sid parameter must be freed with matrixSslDeleteSessionId after its
 		useful life. The poolUserPtr value will be passed as the userPtr to
 		psOpenPool when creating the dedicated memory pool for the session
 		material. */
-	// rc = matrixSslNewSessionId(
-	// 	&sid,   // I/O: Storage for an SSL session ID used to resume sessions.
-	// 	nullptr // IN:  Optional allocation context.
-	// );
-	// Serial.print("HTTPS > sendHttpsRequest > matrixSslNewSessionId=");
-	// Serial.println(rc);
-	// if (rc < 0)
-	// {
-	// 	return rc;
-	// }
+	rc = matrixSslNewSessionId(
+		&sid,   // I/O: Storage for an SSL session ID used to resume sessions.
+		nullptr // IN:  Optional allocation context.
+	);
+	Serial.print("HTTPS > sendHttpsRequest > matrixSslNewSessionId=");
+	Serial.println(rc);
+	if (rc < 0)
+	{
+		return rc;
+	}
 
 	/*	The user must free tlsExtension_t with matrixSslDeleteHelloExtension
 		after the useful life. The extension data is internally copied into the
@@ -334,7 +331,7 @@ int32_t sendHttpsRequest(std::string request)
 	matrixSslEncodeClosureAlert(ssl);
 	sendToTCP();
 
-	// matrixSslDeleteSessionId(sid);
+	matrixSslDeleteSessionId(sid);
 	matrixSslDeleteSession(ssl);
 
     tcpClient.flush();
@@ -626,14 +623,14 @@ static int32_t certCb(ssl_t *ssl, psX509Cert_t *cert, int32_t alert)
 		Serial.print("HTTPS > certCb > ERROR: No matching CA found. Terminating connection.");
 	}
 
-	// If the expectedName passed to matrixSslNewClientSession does not match
-	// any of the server subject name or subjAltNames, we will have the alert
-	// below. For security, the expected name (typically a domain name) _must_
-	// match one of the certificate subject names, or the connection should not
-	// continue. The default MatrixSSL certificates use localhost and 127.0.0.1
-	// as the subjects, so unless the server IP matches one of those, this
-	// alert will happen. To temporarily disable the subjet name validation,
-	// NULL can be passed as expectedName to matrixNewClientSession.
+	/*	If the expectedName passed to matrixSslNewClientSession does not match
+		any of the server subject name or subjAltNames, we will have the alert
+		below. For security, the expected name (typically a domain name) _must_
+		match one of the certificate subject names, or the connection should not
+		continue. The default MatrixSSL certificates use localhost and 127.0.0.1
+		as the subjects, so unless the server IP matches one of those, this
+		alert will happen. To temporarily disable the subjet name validation,
+		NULL can be passed as expectedName to matrixNewClientSession. */
 	if (alert == SSL_ALERT_CERTIFICATE_UNKNOWN)
 	{
 		Serial.print("HTTPS > certCb > ERROR: Expected name was not found in cert subject names - ");
@@ -670,8 +667,8 @@ static int32_t certCb(ssl_t *ssl, psX509Cert_t *cert, int32_t alert)
 
 	if (alert == SSL_ALERT_BAD_CERTIFICATE)
 	{
-		// Should never let a connection happen if this is set. There was
-		// either a problem in the presented chain or in the final CA test
+		/*	Should never let a connection happen if this is set. There was
+			either a problem in the presented chain or in the final CA test */
 		Serial.println("HTTPS > certCb > ERROR: Problem in certificate validation. Exiting.");
 	}
 
@@ -687,7 +684,7 @@ static int32_t certCb(ssl_t *ssl, psX509Cert_t *cert, int32_t alert)
 static int32_t extensionCb(ssl_t *ssl, unsigned short extType, unsigned short extLen, void *e)
 {
 	Serial.println("HTTPS > extensionCb");
-	//*
+
 	unsigned char *c;
 	short         len;
 	char          proto[128];
@@ -703,6 +700,7 @@ static int32_t extensionCb(ssl_t *ssl, unsigned short extType, unsigned short ex
 		memcpy(proto, c, len);
 		Serial.print("HTTPS > extensionCb > Server agreed to use ");
 		Serial.println(proto);
-	}//*/
+	}
+
 	return PS_SUCCESS;
 }
